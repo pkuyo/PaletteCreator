@@ -71,10 +71,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\link\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>E:\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dev\PaletteUI.cs" />
     <Compile Include="PaletteDrawPannel.cs" />
+    <Compile Include="PaletteManager.cs" />
+    <Compile Include="PalettePage.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

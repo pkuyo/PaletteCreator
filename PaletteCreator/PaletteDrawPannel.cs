@@ -2,6 +2,7 @@
 using RWCustom;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,9 +20,14 @@ namespace pkuyo.PaletteCreator
         public Vector2 tileDefinationLabelPos;
 
         public Button getCurrentButton;
+        public Button clearLabelsInRowButton;
+        public Button applyCurrentButton;
+        public Button selectPaletteButton;
+        public Button savePaletteButton;
+
         public Button addLabelButton;
         public Button deleteLabelButton;
-        public Button clearLabelsInRowButton;
+        
         public Button setColorButton;
 
         PaletteColorPicker colorPicker;
@@ -32,8 +38,11 @@ namespace pkuyo.PaletteCreator
 
         public FLabel tileDefination;
 
+        public PaletteRepresent currentRepresent;
         public PaletteDrawPannel(DevUI owner,DevUINode parent,Vector2 pos,Vector2 size) : base(owner, "PaletteDrawPannel", parent, pos, size, "PaletteCreator")
         {
+            PaletteManager.LoadAll();
+
             tileDefinationLabelPos = new Vector2(5f, size.y - 5f);
 
             currentPalette = new Texture2D(32, 16);
@@ -43,10 +52,16 @@ namespace pkuyo.PaletteCreator
             clearLabelsInRowButton = new Button(owner, "PaletteClearLabelsButton", this, new Vector2(85f, size.y - 35f), 60f, "ClearRow");
             setColorButton = new Button(owner, "PaletteSetColor", this, new Vector2(10f, size.y - 200f - 20f), 40f, "SetCol");
             deleteLabelButton = new Button(owner, "PaletteRemoveLabel", this, new Vector2(60f, size.y - 200f - 20f), 80f, "RemoveLabel");
+            applyCurrentButton = new Button(owner, "PaletteApplyCurrentButton", this, new Vector2(155f, size.y - 35f), 80f, "ApplyCurrent");
+            selectPaletteButton = new Button(owner, "PaletteSelectPaletteButton", this, new Vector2(245f, size.y - 35f), 90f, "SelectPalette");
+            savePaletteButton = new Button(owner, "PaletteSavePaletteButton", this, new Vector2(340, size.y - 35f), 90f, "SavePalette");
             subNodes.Add(getCurrentButton);
             subNodes.Add(clearLabelsInRowButton);
             subNodes.Add(setColorButton);
             subNodes.Add(deleteLabelButton);
+            subNodes.Add(applyCurrentButton);
+            subNodes.Add(selectPaletteButton);
+            subNodes.Add(savePaletteButton);
 
             SetUpRowAndPixelRepresents();
             foreach(var pixel in pixelRepresents)
@@ -96,13 +111,8 @@ namespace pkuyo.PaletteCreator
         {
             if(sender == getCurrentButton)
             {
-                for(int x = 0;x < 32; x++)
-                {
-                    for(int y = 0;y < 16; y++)
-                    {
-                        currentPalette.SetPixel(x, y, owner.room.game.cameras[0].fadeTexA.GetPixel(x, y));
-                    }
-                }
+                currentRepresent = PaletteManager.GetPaletteRepresentOfIndex(owner.room.world.game.cameras[0].paletteA);
+                LoadCurrentPalette();
                 currentPalette.Apply();
                 foreach (var represent in pixelRepresents)
                 {
@@ -133,6 +143,23 @@ namespace pkuyo.PaletteCreator
                     (PalettePixelRepresent.lastClickRepresent.parentNode as GradientRow).RefreshColorOfRow();
                 }
             }
+            else if(sender == applyCurrentButton)
+            {
+                ApplyPixelRepresentToTexture();
+                ApplyCurrentToCamera();
+            }
+            else if(sender == selectPaletteButton)
+            {
+                foreach(var node in subNodes)
+                {
+                    if (node is PalettePage) return;
+                }
+                subNodes.Add(new PalettePage(owner, "PalettePalettePage", this, "SelectPalettes"));
+            }
+            else if(sender == savePaletteButton)
+            {
+                PaletteManager.SaveVanilaidPaletteAsNew(currentPalette);
+            }
             else if(sender is PalettePixelRepresent)
             {
                 int x = (sender as PalettePixelRepresent).representPixel.x;
@@ -159,6 +186,20 @@ namespace pkuyo.PaletteCreator
                         break;
                 }
             }
+            else if(sender is PalettePage)
+            {
+                var palette = PaletteManager.GetPaletteRepresentOfName(message);
+                sender.ClearSprites();
+                subNodes.Remove(sender);
+
+                PaletteManager.LoadTexture(palette.index, ref currentPalette);
+                currentPalette.Apply();
+
+                foreach (var represent in pixelRepresents)
+                {
+                    represent.Signal(type, this, "GetCurrentPalette");
+                }
+            }
         }
 
         public override void Refresh()
@@ -176,6 +217,31 @@ namespace pkuyo.PaletteCreator
                     currentPalette.SetPixel(x, y, pixelRepresents[x,y].representCol);
                 }
             }
+        }
+
+        public void ApplyCurrentToCamera()
+        {
+            var cam = owner.room.world.game.cameras[0];
+            var camTexA = cam.fadeTexA;
+            for(int x = 0;x < 32; x++)
+            {
+                for(int y = 0;y < 16; y++)
+                {
+                    camTexA.SetPixel(x, y, currentPalette.GetPixel(x, y));
+                }
+            }
+
+            cam.ApplyEffectColorsToPaletteTexture(ref camTexA, cam.room.roomSettings.EffectColorA, cam.room.roomSettings.EffectColorB);
+            camTexA.Apply(false);
+            cam.ApplyFade();
+        }
+
+        public void LoadCurrentPalette()
+        {
+            var cam = owner.room.world.game.cameras[0];
+            int pal = cam.paletteA;
+
+            PaletteManager.LoadTexture(pal, ref currentPalette);
         }
     }
 
