@@ -453,7 +453,6 @@ namespace pkuyo.PaletteCreator.Dev
 
             public class RectNub : CircleDevUINode
             {
-
                 public bool held;
                 public RectNub(DevUI owner, string IDstring, DevUINode parentNode, Vector2 pos) : base(owner, IDstring, parentNode, pos, 15)
                 {
@@ -502,8 +501,6 @@ namespace pkuyo.PaletteCreator.Dev
 
         }
     }
-
-
 
     abstract public class CircleDevUINode : PositionedDevUINode
     {
