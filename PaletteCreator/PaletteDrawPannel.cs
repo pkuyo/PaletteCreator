@@ -14,6 +14,8 @@ namespace pkuyo.PaletteCreator
 {
     public class PaletteDrawPannel : Panel , IDevUISignals
     {
+        public static PaletteDrawPannel instance;
+
         public static Vector2 normalSpacing = new Vector2(4f,4f);
         public static Vector2 paletteBias = new Vector2(150f, 20f);
         public static string tileDefinationTitle = "CurrentTile : ";
@@ -54,7 +56,7 @@ namespace pkuyo.PaletteCreator
             deleteLabelButton = new Button(owner, "PaletteRemoveLabel", this, new Vector2(60f, size.y - 200f - 20f), 80f, "RemoveLabel");
             applyCurrentButton = new Button(owner, "PaletteApplyCurrentButton", this, new Vector2(155f, size.y - 35f), 80f, "ApplyCurrent");
             selectPaletteButton = new Button(owner, "PaletteSelectPaletteButton", this, new Vector2(245f, size.y - 35f), 90f, "SelectPalette");
-            savePaletteButton = new Button(owner, "PaletteSavePaletteButton", this, new Vector2(340, size.y - 35f), 90f, "SavePalette");
+            savePaletteButton = new Button(owner, "PaletteSavePaletteButton", this, new Vector2(370, size.y - 35f), 90f, "SavePalette");
             subNodes.Add(getCurrentButton);
             subNodes.Add(clearLabelsInRowButton);
             subNodes.Add(setColorButton);
@@ -77,6 +79,8 @@ namespace pkuyo.PaletteCreator
             fLabels.Add(tileDefination);
             Futile.stage.AddChild(tileDefination);
             tileDefination.SetPosition(absPos + tileDefinationLabelPos + tileDefination.textRect.width * Vector2.right);
+
+            instance = this;
         }
 
         public void SetUpRowAndPixelRepresents()
@@ -158,7 +162,13 @@ namespace pkuyo.PaletteCreator
             }
             else if(sender == savePaletteButton)
             {
-                PaletteManager.SaveVanilaidPaletteAsNew(currentPalette);
+                if (currentRepresent == null) return;
+                Debug.Log(String.Format("SavePalette\nRepresentInfo : name - {0}\nindex - {1}\npath - {2}\nisCustom - {3}\n{4}\n{5}",currentRepresent.name,currentRepresent.index,currentRepresent.path,currentRepresent.isCustomPalette,currentPalette.ToString(),sender.ToString()));
+
+                ApplyPixelRepresentToTexture();
+                currentPalette.Apply();
+                if (currentRepresent.isCustomPalette) PaletteManager.WriteTextureInfoFile(currentPalette, currentRepresent);
+                else PaletteManager.SaveVanillaPaletteAsNew(currentPalette);
             }
             else if(sender is PalettePixelRepresent)
             {
@@ -188,18 +198,28 @@ namespace pkuyo.PaletteCreator
             }
             else if(sender is PalettePage)
             {
-                var palette = PaletteManager.GetPaletteRepresentOfName(message);
+                currentRepresent = PaletteManager.GetPaletteRepresentOfName(message);
                 sender.ClearSprites();
                 subNodes.Remove(sender);
 
-                PaletteManager.LoadTexture(palette.index, ref currentPalette);
+                PaletteManager.LoadTexture(currentRepresent, ref currentPalette);
                 currentPalette.Apply();
+
+                Debug.Log(String.Format("LoadTexture\nRepresentInfo : name - {0}\nindex - {1}\npath - {2}\nisCustom - {3}\n{4}\n{5}", currentRepresent.name, currentRepresent.index, currentRepresent.path, currentRepresent.isCustomPalette, currentPalette.ToString(), sender.ToString()));
+
 
                 foreach (var represent in pixelRepresents)
                 {
                     represent.Signal(type, this, "GetCurrentPalette");
                 }
             }
+        }
+
+        public override void ClearSprites()
+        {
+            base.ClearSprites();
+            instance = null;
+
         }
 
         public override void Refresh()
@@ -241,7 +261,7 @@ namespace pkuyo.PaletteCreator
             var cam = owner.room.world.game.cameras[0];
             int pal = cam.paletteA;
 
-            PaletteManager.LoadTexture(pal, ref currentPalette);
+            PaletteManager.LoadTexture(currentRepresent, ref currentPalette);
         }
     }
 
@@ -433,9 +453,7 @@ namespace pkuyo.PaletteCreator
 
                         Debug.Log(String.Format("Represent{0},{1},{2}", representPixel.x, representPixel.y, representCol));
                         break;
- 
                 }
-               
             }
             else if (sender is GradientRow)
             {

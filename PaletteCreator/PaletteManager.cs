@@ -20,6 +20,7 @@ namespace pkuyo.PaletteCreator
         {
             if (loaded) return;
             LoadDefaultPalettes();
+            LoadCustomPalettes();
             loaded = true;
 
             represents.Sort((x,y) => (x.index.CompareTo(y.index)));
@@ -68,7 +69,7 @@ namespace pkuyo.PaletteCreator
                 string name = Path.GetFileName(file);
                 if (Regex.IsMatch(name, @"palette\d+.png"))
                 {
-                    represents.Add(new PaletteRepresent(name, file, true));
+                    represents.Add(new PaletteRepresent(name, file, true, true));
                 }
             }
         }
@@ -90,6 +91,29 @@ namespace pkuyo.PaletteCreator
             return null;
         }
 
+        public static void LoadTexture(PaletteRepresent represent,ref Texture2D tex)
+        {
+            if (represent.isCustomPalette)
+            {
+                if(tex != null)
+                {
+                    UnityEngine.Object.Destroy(tex);
+                }
+                tex = new Texture2D(32, 16, TextureFormat.ARGB32, false);
+
+                var path = represent.path;
+                try
+                {
+                    AssetManager.SafeWWWLoadTexture(ref tex, path, false, true);
+                }
+                catch (Exception e)
+                {
+                    tex = new Texture2D(32, 16, TextureFormat.ARGB32, false);
+                }
+            }
+            else LoadTexture(represent.index, ref tex);
+        }
+
         public static void LoadTexture(int pal,ref Texture2D tex)
         {
             if (tex != null)
@@ -109,7 +133,7 @@ namespace pkuyo.PaletteCreator
             {
                 AssetManager.SafeWWWLoadTexture(ref tex, "file:///" + path, false, true);
             }
-            catch (FileLoadException)
+            catch (Exception)
             {
                 path = AssetManager.ResolveFilePath("Palettes" + Path.DirectorySeparatorChar.ToString() + "palette-1.png");
                 AssetManager.SafeWWWLoadTexture(ref tex, "file:///" + path, false, true);
@@ -119,7 +143,14 @@ namespace pkuyo.PaletteCreator
         public static void WriteTextureInfoFile(Texture2D texture,PaletteRepresent represent)
         {
             var bytes = texture.EncodeToPNG();
+            if (!File.Exists(represent.path)) File.Create(represent.path).Dispose();//避免报错
             File.WriteAllBytes(represent.path, bytes);
+            represent.everSaved = true;
+        }
+
+        public static PaletteRepresent CreateCustomPalette()
+        {
+            return CreateCustomPalette(currentNewTexIndex++);
         }
 
         public static PaletteRepresent CreateCustomPalette(int pal)
@@ -133,7 +164,7 @@ namespace pkuyo.PaletteCreator
             return newPalette;
         }
 
-        public static void SaveVanilaidPaletteAsNew(Texture2D texture)
+        public static void SaveVanillaPaletteAsNew(Texture2D texture)
         {
             var tempRepresent = CreateCustomPalette(currentNewTexIndex++);
             WriteTextureInfoFile(texture, tempRepresent);
@@ -147,11 +178,14 @@ namespace pkuyo.PaletteCreator
         public string path;
         public bool isCustomPalette;
 
-        public PaletteRepresent(string name, string path,bool isCustomPalette = false)
+        public bool everSaved;
+
+        public PaletteRepresent(string name, string path,bool isCustomPalette = false,bool everSaved = false)
         {
             this.name = name;
             this.path = path;
             this.isCustomPalette = isCustomPalette;
+            this.everSaved = everSaved;
             index = int.Parse(name.Replace("palette","").Replace(".png",""));
         }
     }
