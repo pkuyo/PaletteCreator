@@ -47,30 +47,5 @@ namespace pkuyo.PaletteCreator
             if(PaletteDrawPannel.instance == null) self.subNodes.Add(new PaletteDrawPannel(owner, self, new Vector2(400, 200), new Vector2(726f, 350f)));
         }
 
-
-        private void RoomSettingsPage_Signal(On.DevInterface.RoomSettingsPage.orig_Signal orig, RoomSettingsPage self, DevUISignalType type, DevUINode sender, string message)
-        {
-            orig(self,type,sender,message);
-            if (sender is ColorButton && type == DevUISignalType.Create && !panels.ContainsKey(message))
-            {
-                ColorPanel colorPanel = new ColorPanel(self.owner, message +"_ColorPicker" , self,(sender as PositionedDevUINode).absPos + new Vector2(300, -20), message);
-                panels.Add(message, colorPanel);
-                self.subNodes.Add(colorPanel);
-                colorPanel.Refresh();
-
-                //LerpColorPanel lerpColorPanel = new LerpColorPanel(self.owner, message + "_LerpColor", self, (sender as PositionedDevUINode).absPos + new Vector2(300, -20), message);
-                //self.subNodes.Add(lerpColorPanel);
-                //lerpColorPanel.Refresh();
-            }
-            else
-            {
-                self.subNodes.Remove(panels[message]);
-                panels[message].ClearSprites();
-                panels[message] = null;
-                panels.Remove(message);
-            }
-
-            //TODO: Hook Signal设置房间
-        }
     }
 }

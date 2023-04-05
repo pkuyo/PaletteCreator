@@ -164,7 +164,12 @@ namespace pkuyo.PaletteCreator
             {
                 foreach(var node in subNodes)
                 {
-                    if (node is PalettePage) return;
+                    if (node is PalettePage)
+                    {
+                        node.ClearSprites();
+                        subNodes.Remove(node);
+                        return;
+                    }
                 }
                 subNodes.Add(new PalettePage(owner, "PalettePalettePage", this, "SelectPalettes"));
             }
@@ -592,7 +597,10 @@ namespace pkuyo.PaletteCreator
 
         public void ConnectToPixel(PalettePixelRepresent represent)
         {
-            if(represent == null)
+            PickedColor = represent.representCol;
+            SetPickedColor();
+
+            if (represent == null)
             {
                 posDelta = Vector2.zero;
                 return;

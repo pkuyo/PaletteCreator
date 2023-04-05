@@ -21,6 +21,9 @@ namespace pkuyo.PaletteCreator
 		public PalettePage(DevUI owner, string IDstring, DevUINode parentNode, string name) : base(owner, IDstring, parentNode, name)
 		{
 			this.parentNode = parentNode;
+			foreach (var node in subNodes)
+				node.ClearSprites();
+			subNodes.Clear();
 			palettePanel = new Panel(owner, "Palettes_Panel", this, new Vector2(1050f, 250f), new Vector2(200f, 440f), "Palettes");
 			 // 多一个为new palette按钮留空
 			subNodes.Add(palettePanel);
