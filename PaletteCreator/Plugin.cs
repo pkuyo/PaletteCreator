@@ -28,8 +28,14 @@ namespace pkuyo.PaletteCreator
         private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             orig(self);
-            On.DevInterface.RoomSettingsPage.Signal += RoomSettingsPage_Signal;
+            //On.DevInterface.RoomSettingsPage.Signal += RoomSettingsPage_Signal;
             On.DevInterface.RoomSettingsPage.ctor += RoomSettingsPage_ctor;
+
+            string path = AssetManager.ResolveFilePath("PaletteCreatorBundle/palettecreatorbundle");
+            var bundle = AssetBundle.LoadFromFile(path);
+
+            Shader shader = bundle.LoadAsset<Shader>("assets/myshader/hsvpanelshader.shader");
+            self.Shaders.Add("HSVPanel", FShader.CreateShader("HSVPanel", shader));
         }
 
 
@@ -37,8 +43,8 @@ namespace pkuyo.PaletteCreator
         private void RoomSettingsPage_ctor(On.DevInterface.RoomSettingsPage.orig_ctor orig, RoomSettingsPage self, DevUI owner, string IDstring, DevUINode parentNode, string name)
         {
             orig(self, owner, IDstring, parentNode, name);
-            
-            self.subNodes.Add(new PalettePanel(owner, "Palette_Panel",self,new Vector2(400,400), new Vector2(400, 260), "Palette Color :"));
+            //self.subNodes.Add(new PalettePanel(owner, "Palette_Panel",self,new Vector2(400,400), new Vector2(400, 260), "Palette Color :"));
+            if(PaletteDrawPannel.instance == null) self.subNodes.Add(new PaletteDrawPannel(owner, self, new Vector2(400, 200), new Vector2(726f, 350f)));
         }
 
 
