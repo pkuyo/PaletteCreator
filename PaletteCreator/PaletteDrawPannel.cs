@@ -20,6 +20,7 @@ namespace pkuyo.PaletteCreator
         public static Vector2 paletteBias = new Vector2(150f, 20f);
         public static string tileDefinationTitle = "CurrentTile : ";
         public Vector2 tileDefinationLabelPos;
+        public Vector2 currentPaletteLabelPos;
 
         public Button getCurrentButton;
         public Button clearLabelsInRowButton;
@@ -38,7 +39,8 @@ namespace pkuyo.PaletteCreator
         public PalettePixelRepresent[,] pixelRepresents;
         public Texture2D currentPalette;
 
-        public FLabel tileDefination;
+        public FLabel tileDefinationLabel;
+        public FLabel currentPaletteLabel;
 
         public PaletteRepresent currentRepresent;
         public PaletteDrawPannel(DevUI owner,DevUINode parent,Vector2 pos,Vector2 size) : base(owner, "PaletteDrawPannel", parent, pos, size, "PaletteCreator")
@@ -46,6 +48,7 @@ namespace pkuyo.PaletteCreator
             PaletteManager.LoadAll();
 
             tileDefinationLabelPos = new Vector2(5f, size.y - 5f);
+            currentPaletteLabelPos = new Vector2(500f, size.y - 5f);
 
             currentPalette = new Texture2D(32, 16);
             currentPalette.filterMode = FilterMode.Point;
@@ -74,11 +77,17 @@ namespace pkuyo.PaletteCreator
             colorPicker = new PaletteColorPicker(owner, "PaletterColorPicker", this, new Vector2(10f, size.y - 200f), null);
             subNodes.Add(colorPicker);
 
-            tileDefination = new FLabel(Custom.GetFont(), tileDefinationTitle + "null");
+            tileDefinationLabel = new FLabel(Custom.GetFont(), tileDefinationTitle + "null") { anchorX = 0,scale = 1.1f};
+            currentPaletteLabel = new FLabel(Custom.GetFont(), "no palette") { anchorX = 0,scale = 1.1f};
 
-            fLabels.Add(tileDefination);
-            Futile.stage.AddChild(tileDefination);
-            tileDefination.SetPosition(absPos + tileDefinationLabelPos + tileDefination.textRect.width * Vector2.right);
+            fLabels.Add(tileDefinationLabel);
+            fLabels.Add(currentPaletteLabel);
+
+            Futile.stage.AddChild(tileDefinationLabel);
+            Futile.stage.AddChild(currentPaletteLabel);
+
+            tileDefinationLabel.SetPosition(absPos + tileDefinationLabelPos);
+            currentPaletteLabel.SetPosition(absPos + currentPaletteLabelPos);
 
             instance = this;
         }
@@ -116,8 +125,7 @@ namespace pkuyo.PaletteCreator
             if(sender == getCurrentButton)
             {
                 currentRepresent = PaletteManager.GetPaletteRepresentOfIndex(owner.room.world.game.cameras[0].paletteA);
-                LoadCurrentPalette();
-                currentPalette.Apply();
+                currentRepresent.CopyPaletteToTex(ref currentPalette);
                 foreach (var represent in pixelRepresents)
                 {
                     represent.Signal(type, this, "GetCurrentPalette");
@@ -167,8 +175,17 @@ namespace pkuyo.PaletteCreator
 
                 ApplyPixelRepresentToTexture();
                 currentPalette.Apply();
-                if (currentRepresent.isCustomPalette) PaletteManager.WriteTextureInfoFile(currentPalette, currentRepresent);
-                else PaletteManager.SaveVanillaPaletteAsNew(currentPalette);
+                if (currentRepresent.isCustomPalette) PaletteManager.SavePaletteTexture(currentPalette, currentRepresent);
+                else
+                {
+                    currentRepresent = PaletteManager.SaveVanillaPaletteAsNew(currentPalette);
+                    currentRepresent.CopyPaletteToTex(ref currentPalette);
+
+                    foreach (var represent in pixelRepresents)
+                    {
+                        represent.Signal(type, this, "GetCurrentPalette");
+                    }
+                }
             }
             else if(sender is PalettePixelRepresent)
             {
@@ -180,7 +197,7 @@ namespace pkuyo.PaletteCreator
                 switch (title)
                 {
                     case "DisSelectPixel":
-                        tileDefination.text = tileDefinationTitle + "null";
+                        tileDefinationLabel.text = tileDefinationTitle + "null";
                         colorPicker.ConnectToPixel(null);
                         break;
                     case "SelectPixel":
@@ -192,7 +209,7 @@ namespace pkuyo.PaletteCreator
                             }
                         }
                         colorPicker.ConnectToPixel(sender as PalettePixelRepresent);
-                        tileDefination.text = tileDefinationTitle + (sender as PalettePixelRepresent).name;
+                        tileDefinationLabel.text = tileDefinationTitle + (sender as PalettePixelRepresent).name;
                         break;
                 }
             }
@@ -202,17 +219,16 @@ namespace pkuyo.PaletteCreator
                 sender.ClearSprites();
                 subNodes.Remove(sender);
 
-                PaletteManager.LoadTexture(currentRepresent, ref currentPalette);
-                currentPalette.Apply();
+                currentRepresent.CopyPaletteToTex(ref currentPalette);
 
                 Debug.Log(String.Format("LoadTexture\nRepresentInfo : name - {0}\nindex - {1}\npath - {2}\nisCustom - {3}\n{4}\n{5}", currentRepresent.name, currentRepresent.index, currentRepresent.path, currentRepresent.isCustomPalette, currentPalette.ToString(), sender.ToString()));
-
 
                 foreach (var represent in pixelRepresents)
                 {
                     represent.Signal(type, this, "GetCurrentPalette");
                 }
             }
+            Refresh();
         }
 
         public override void ClearSprites()
@@ -225,7 +241,21 @@ namespace pkuyo.PaletteCreator
         public override void Refresh()
         {
             base.Refresh();
-            tileDefination.SetPosition(absPos + tileDefinationLabelPos + tileDefination.textRect.width * Vector2.right);
+            tileDefinationLabel.SetPosition(absPos + tileDefinationLabelPos);
+            currentPaletteLabel.SetPosition(absPos + currentPaletteLabelPos);
+
+            string text = "";
+            if (currentRepresent != null)
+            {
+                text += currentRepresent.name;
+                if (currentRepresent.isCustomPalette)
+                {
+                    text += " isCustom";
+                    text += currentRepresent.everSaved ? " everSave" : " notSaved";
+                }
+            }
+            else text += "no palette";
+            currentPaletteLabel.text = text;
         }
 
         public void ApplyPixelRepresentToTexture()
@@ -235,6 +265,10 @@ namespace pkuyo.PaletteCreator
                 for (int y = 0; y < 16; y++)
                 {
                     currentPalette.SetPixel(x, y, pixelRepresents[x,y].representCol);
+                    if(currentRepresent.labels != null)
+                    {
+                        currentRepresent.labels[x, y] = pixelRepresents[x, y].isFadeLabel;
+                    }
                 }
             }
         }
@@ -448,10 +482,15 @@ namespace pkuyo.PaletteCreator
                         PaletteDrawPannel paletterDrawPannel = sender as PaletteDrawPannel;
                         Texture2D tex = paletterDrawPannel.currentPalette;
                         representCol = tex.GetPixel(representPixel.x, representPixel.y);
+                        if(paletterDrawPannel.currentRepresent != null && paletterDrawPannel.currentRepresent.labels != null)
+                        {
+                            isFadeLabel = paletterDrawPannel.currentRepresent.labels[representPixel.x, representPixel.y] && inGradientRow;
+                        }
+                        else
+                        {
+                            if (inGradientRow) isFadeLabel = true;
+                        }
 
-                        if (inGradientRow) isFadeLabel = true;
-
-                        Debug.Log(String.Format("Represent{0},{1},{2}", representPixel.x, representPixel.y, representCol));
                         break;
                 }
             }
