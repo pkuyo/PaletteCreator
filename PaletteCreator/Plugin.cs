@@ -30,6 +30,12 @@ namespace pkuyo.PaletteCreator
             orig(self);
             //On.DevInterface.RoomSettingsPage.Signal += RoomSettingsPage_Signal;
             On.DevInterface.RoomSettingsPage.ctor += RoomSettingsPage_ctor;
+
+            string path = AssetManager.ResolveFilePath("PaletteCreatorBundle/palettecreatorbundle");
+            var bundle = AssetBundle.LoadFromFile(path);
+
+            Shader shader = bundle.LoadAsset<Shader>("assets/myshader/hsvpanelshader.shader");
+            self.Shaders.Add("HSVPanel", FShader.CreateShader("HSVPanel", shader));
         }
 
 

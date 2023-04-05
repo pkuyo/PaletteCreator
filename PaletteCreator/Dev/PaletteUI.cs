@@ -335,17 +335,17 @@ namespace pkuyo.PaletteCreator.Dev
 
 
 
-                fSprites.Add(new CustomFSprite("Futile_White"));
+                fSprites.Add(new CustomFSprite("Futile_White") { shader = owner.room.game.rainWorld.Shaders["HSVPanel"]});
                 var rect = (fSprites[fSprites.Count - 1] as CustomFSprite);
                 rect.anchorX = 0;
                 rect.anchorY = 0;
                 rect.MoveVertice(1, new Vector2(0, 100));
                 rect.MoveVertice(3, new Vector2(100, 0));
                 rect.MoveVertice(2, new Vector2(100, 100));
-                rect.verticeColors[0] = Color.HSVToRGB(h, 0, 0);
-                rect.verticeColors[1] = Color.HSVToRGB(h, 0, 1);
-                rect.verticeColors[2] = Color.HSVToRGB(h, 1, 1);
-                rect.verticeColors[3] = Color.HSVToRGB(h, 1, 0);
+                rect.verticeColors[0] = new Color(1f - h, 0, 0);
+                rect.verticeColors[1] = new Color(1f - h, 0, 1);
+                rect.verticeColors[2] = new Color(1f - h, 1, 1);
+                rect.verticeColors[3] = new Color(1f - h, 1, 0);
                 if (owner != null)
                     Futile.stage.AddChild(fSprites[fSprites.Count - 1]);
 
@@ -372,10 +372,10 @@ namespace pkuyo.PaletteCreator.Dev
                 if (sliderNub != null && sliderNub.held)
                 {
                     float hue = sliderNub.pos.x / 100f;
-                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[0] = Color.HSVToRGB(hue, 0, 0);
-                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[1] = Color.HSVToRGB(hue, 0, 1);
-                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[2] = Color.HSVToRGB(hue, 1, 1);
-                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[3] = Color.HSVToRGB(hue, 1, 0);
+                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[0] = new Color(1f - hue, 0, 0);
+                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[1] = new Color(1f - hue, 0, 1);
+                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[2] = new Color(1f - hue, 1, 1);
+                    (fSprites[fSprites.Count - 2] as CustomFSprite).verticeColors[3] = new Color(1f - hue, 1, 0);
                 }
 
                 if ((sliderNub != null && rectNub != null) && (sliderNub.held || rectNub.held))

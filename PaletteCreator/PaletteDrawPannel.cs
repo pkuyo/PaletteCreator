@@ -247,11 +247,11 @@ namespace pkuyo.PaletteCreator
             string text = "";
             if (currentRepresent != null)
             {
-                text += currentRepresent.name;
+                text += currentRepresent.name.Replace(".png","");
                 if (currentRepresent.isCustomPalette)
                 {
-                    text += " isCustom";
-                    text += currentRepresent.everSaved ? " everSave" : " notSaved";
+                    text += "  isCustom";
+                    text += currentRepresent.everSaved ? "  everSaved" : "  notSaved";
                 }
             }
             else text += "no palette";
@@ -448,7 +448,7 @@ namespace pkuyo.PaletteCreator
             name = "null";
             if (inGradientRow)
             {
-                name = (parent as GradientRow).name;
+                name = (parent as GradientRow).name + "  Depth:" + representPixel.x.ToString();
             }
             else
             {
