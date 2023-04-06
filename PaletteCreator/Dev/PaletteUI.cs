@@ -14,12 +14,13 @@ using Color = UnityEngine.Color;
 namespace pkuyo.PaletteCreator.Dev
 {
   
-    class ColorPanel : Panel
+    public class ColorPanel : Panel
     {
         public IntVector2 index;
+        public ColorPicker picker;
         public ColorPanel(DevUI owner, string IDstring, DevUINode parentNode, Vector2 pos, string title, Color? color = null, IntVector2? index = null) : base(owner, IDstring, parentNode, pos, new Vector2(200, 140), title)
         {
-            subNodes.Add(new ColorPicker(owner, "Color", this, new Vector2(5, 5), color));
+            subNodes.Add(picker = new ColorPicker(owner, "Color", this, new Vector2(5, 5), color));
             if (index != null)
             {
                 this.index = (IntVector2)index;
@@ -35,9 +36,7 @@ namespace pkuyo.PaletteCreator.Dev
 
             public Color PickedColor { get;  set; }
             
-
-
-            bool isPicking = false;
+            public bool isPicking = false;
             bool waitPicking = false;
             Color lastColor = new Color();
 
@@ -133,7 +132,6 @@ namespace pkuyo.PaletteCreator.Dev
 
             public override void Update()
             {
-
                 base.Update();
 
                 if (waitPicking && !owner.mouseDown)

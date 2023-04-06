@@ -33,7 +33,7 @@ namespace pkuyo.PaletteCreator
         
         public Button setColorButton;
 
-        PaletteColorPicker colorPicker;
+        public PaletteColorPicker colorPicker;
 
         public List<GradientRow> rows = new List<GradientRow>();
         public PalettePixelRepresent[,] pixelRepresents;
@@ -69,13 +69,14 @@ namespace pkuyo.PaletteCreator
             subNodes.Add(savePaletteButton);
 
             SetUpRowAndPixelRepresents();
-            foreach(var pixel in pixelRepresents)
+
+            colorPicker = new PaletteColorPicker(owner, "PaletterColorPicker", this, new Vector2(10f, size.y - 200f), null);
+
+            subNodes.Add(colorPicker);
+            foreach (var pixel in pixelRepresents)//pixelRepresent需要后加入，以保证update顺序正确
             {
                 subNodes.Add(pixel);
             }
-
-            colorPicker = new PaletteColorPicker(owner, "PaletterColorPicker", this, new Vector2(10f, size.y - 200f), null);
-            subNodes.Add(colorPicker);
 
             tileDefinationLabel = new FLabel(Custom.GetFont(), tileDefinationTitle + "null") { anchorX = 0,scale = 1.1f};
             currentPaletteLabel = new FLabel(Custom.GetFont(), "no palette") { anchorX = 0,scale = 1.1f};
@@ -434,6 +435,19 @@ namespace pkuyo.PaletteCreator
             }
         }
 
+        public bool isColorPickerPicking
+        {
+            get
+            {
+                DevUINode panel = parentNode;
+                while(!(panel is PaletteDrawPannel))
+                {
+                    panel = panel.parentNode;
+                }
+                return (panel as PaletteDrawPannel).colorPicker.isPicking;
+            }
+        }
+
         public PalettePixelRepresent(DevUI owner,IntVector2 representPixel,Vector2 pos,DevUINode parent) : base(owner,"PixelReprensent" + SplitSymbol + representPixel.x.ToString() + SplitSymbol + representPixel.y.ToString(), parent, pos)
         {
             inGradientRow = parent is GradientRow;
@@ -527,7 +541,7 @@ namespace pkuyo.PaletteCreator
             base.Update();
             if (owner.mouseClick)
             {
-                if (MouseOver && isPixelDefined)
+                if (MouseOver && isPixelDefined && !isColorPickerPicking)
                 {
                     if(lastClickRepresent == this)
                     {
@@ -582,7 +596,7 @@ namespace pkuyo.PaletteCreator
         }
     }
 
-    class PaletteColorPicker : ColorPicker
+    public class PaletteColorPicker : ColorPicker
     {
         public FSprite line;
 

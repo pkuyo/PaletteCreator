@@ -24,7 +24,7 @@ namespace pkuyo.PaletteCreator
 			foreach (var node in subNodes)
 				node.ClearSprites();
 			subNodes.Clear();
-			palettePanel = new Panel(owner, "Palettes_Panel", this, new Vector2(1050f, 250f), new Vector2(200f, 440f), "Palettes");
+			palettePanel = new Panel(owner, "Palettes_Panel", this, new Vector2(1050f, 150f), new Vector2(200f, 440f), "Palettes");
 			 // 多一个为new palette按钮留空
 			subNodes.Add(palettePanel);
 			for (int j = 0; j < 2; j++)
@@ -62,7 +62,7 @@ namespace pkuyo.PaletteCreator
 			}
 			if(num2 < maxPalettesPerPage)
             {
-				palettePanel.subNodes.Add(new Button(owner, "New_Palette", palettePanel, new Vector2(5f, palettePanel.size.y - 16f - 35f - 20f * (float)num2), 190f, "New Palette") { colorA = Color.yellow * 0.5f + Color.black * 0.5f,colorB = Color.yellow * 0.5f + Color.white * 0.5f});
+				palettePanel.subNodes.Add(new Button(owner, "New_Palette", palettePanel, new Vector2(5f, palettePanel.size.y - 16f - 35f - 20f * (float)num2), 190f, "New Palette") { colorA = Color.yellow * 0.5f + Color.black * 0.5f, overrideTextColor = Color.yellow * 0.5f + Color.white * 0.5f});
 			}
 		}
 
@@ -114,7 +114,7 @@ namespace pkuyo.PaletteCreator
             if (palette.isCustomPalette)
             {
 				colorA = Color.cyan * 0.5f + Color.black * 0.5f;
-				colorB = Color.cyan * 0.5f + Color.white * 0.5f;
+				overrideTextColor = Color.cyan * 0.5f + Color.white * 0.5f;
             }
 		}
 

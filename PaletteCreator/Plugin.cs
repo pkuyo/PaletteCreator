@@ -44,7 +44,7 @@ namespace pkuyo.PaletteCreator
         {
             orig(self, owner, IDstring, parentNode, name);
             //self.subNodes.Add(new PalettePanel(owner, "Palette_Panel",self,new Vector2(400,400), new Vector2(400, 260), "Palette Color :"));
-            if(PaletteDrawPannel.instance == null) self.subNodes.Add(new PaletteDrawPannel(owner, self, new Vector2(400, 200), new Vector2(726f, 350f)));
+            if(PaletteDrawPannel.instance == null) self.subNodes.Add(new PaletteDrawPannel(owner, self, new Vector2(500, 250), new Vector2(726f, 350f)));
         }
 
     }
